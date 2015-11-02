@@ -25,7 +25,7 @@ all_events = [ l for l in g.events(' %s .. %s far < %s'%tuple(argv[1:4])) if (l[
 
 results = []
 
-string = "%9s | %17s | %13s | %13s | %20s | %45s"%("graceid", "far", "snr", "mchirp", "lalstart", "lalfinish")
+string = "%10s | %20s | %15s | %15s | %20s | %45s"%("graceid", "far", "snr", "mchirp", "lalstart", "lalfinish")
 #creates a header string to organize the array
 
 for e in all_events:
@@ -36,22 +36,18 @@ for e in all_events:
     mchirp = e['extra_attributes']['CoincInspiral']['mchirp']
     snr = e['extra_attributes']['CoincInspiral']['mchirp']
     logs = g.logs(graceid).json()['log']
+    lalstart = "Not Started"
+    lalfinish = "Not finished as of %s/%s/%s %s:%s:%s" % (now.month, now.day, now.year, now.hour, now.minute, now.second)
     for log in logs:
 #checks to see if lalinference started and/or ended
-
 	comment = log['comment']
 	if "LALInference online parameter estimation started." in comment:
-		lalstart = log['created']
-		break
-	else:
-		lalstart = "Not started"
+		lalstart = log['created'] 
+
 	if "LALInference online parameter estimation finished." in comment:
 		lalfinish = log['created']
-		break
-	else:
-		lalfinish = "Not finished as of %s/%s/%s %s:%s:%s" % (now.month, now.day, now.year, now.hour, now.minute, now.second)
 
-    string += "\n%9s | %17s | %13s | %13s | %20s | %45s"%(graceid, far, snr, mchirp, lalstart, lalfinish)
+    string += "\n%10s | %20s | %15s | %15s | %20s | %45s"%(graceid, far, snr, mchirp, lalstart, lalfinish)
 #Puts all data together and adds it to the previous data
 
 print string
