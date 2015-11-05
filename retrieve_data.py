@@ -46,10 +46,11 @@ for e in all_events:
 
 	if "LALInference online parameter estimation finished." in comment:
 		lalfinish = log['created']
-
+		http = comment.find("http")
+		html = comment.find(">resu")
+		url = comment[http:html]
     string += "\n%10s | %20s | %15s | %15s | %20s | %45s"%(graceid, far, snr, mchirp, lalstart, lalfinish)
 #Puts all data together and adds it to the previous data
-
 print string
 '''
 filename = "mydata.pkl"
