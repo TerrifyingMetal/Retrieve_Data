@@ -4,12 +4,17 @@ arg2 = Upper bound of gpstime
 arg3 = far threshold
 arg4 = specific pipeline that you are interested in
 arg5 = specific pipeline that you are interested in
+arg6 = username for ligo
+arg7 = password for ligo
 '''
 
 from ligo.gracedb.rest import GraceDb 
-#imports database
 
 from datetime import datetime
+
+import numpy
+
+import os
 
 import pickle, json
 
@@ -25,7 +30,15 @@ all_events = [ l for l in g.events(' %s .. %s far < %s'%tuple(argv[1:4])) if (l[
 
 results = []
 
-string = "%10s | %20s | %15s | %15s | %20s | %45s"%("graceid", "far", "snr", "mchirp", "lalstart", "lalfinish")
+def open_url_wget(url,un=None,pw=None,args=[]):
+	import subprocess
+        import urlparse
+        if un is not None and pw is not None:
+                args+=["--user",un,"--password",pw,"--no-check-certificate"]
+        retcode=subprocess.call(['wget']+[url]+args)
+        return retcode
+
+string = "%10s | %20s | %20s | %45s | %15s | %40s | %20s | %40s"%("graceid", "far", "lalstart", "lalfinish", "snr", "lalsnr", "mchirp", "lalmchirp")
 #creates a header string to organize the array
 
 for e in all_events:
@@ -34,12 +47,15 @@ for e in all_events:
     graceid = e['graceid']
     far = e['far']
     mchirp = e['extra_attributes']['CoincInspiral']['mchirp']
-    snr = e['extra_attributes']['CoincInspiral']['mchirp']
+    snr = e['extra_attributes']['CoincInspiral']['snr']
     logs = g.logs(graceid).json()['log']
     lalstart = "Not Started"
     lalfinish = "Not finished as of %s/%s/%s %s:%s:%s" % (now.month, now.day, now.year, now.hour, now.minute, now.second)
+    lalmchirp = "None"
+    lalsnr = "None"
     for log in logs:
 #checks to see if lalinference started and/or ended
+
 	comment = log['comment']
 	if "LALInference online parameter estimation started." in comment:
 		lalstart = log['created'] 
@@ -48,10 +64,21 @@ for e in all_events:
 		lalfinish = log['created']
 		http = comment.find("http")
 		html = comment.find(">resu")
-		url = comment[http:html]
-    string += "\n%10s | %20s | %15s | %15s | %20s | %45s"%(graceid, far, snr, mchirp, lalstart, lalfinish)
+		pp_url = comment[http:html]
+		url = pp_url.replace("posplots.html","summary_statistics.dat")
+		un = argv[6]
+		pw = argv[7]
+		open_url_wget(url, un, pw, args=[]) 
+		return_array = numpy.genfromtxt("summary_statistics.dat", names=True)
+		lalsnr = str(return_array[28][4]) + " +- " + str(return_array[28][3])
+		lalmchirp = str(return_array[32][4]) + " +- " + str(return_array[32][3])		
+		os.remove("summary_statistics.dat")
+
+    string += "\n%10s | %20s | %20s | %45s | %15s | %40s | %20s | %40s"%(graceid, far, lalstart, lalfinish, snr, lalsnr, mchirp, lalmchirp)
 #Puts all data together and adds it to the previous data
+
 print string
+
 '''
 filename = "mydata.pkl"
 print "writing : %s"%filename
