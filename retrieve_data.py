@@ -69,11 +69,14 @@ for e in all_events:
 		un = argv[6]
 		pw = argv[7]
 		open_url_wget(url, un, pw, args=[]) 
-		return_array = numpy.genfromtxt("summary_statistics.dat", names=True)
-		lalsnr = str(return_array[28][4]) + " +- " + str(return_array[28][3])
-		lalmchirp = str(return_array[32][4]) + " +- " + str(return_array[32][3])		
+		return_array = numpy.genfromtxt("summary_statistics.dat", names = True)
+		print str(return_array[0][0])
+		for i in return_array:
+			if "optimal_snr" == str(i[0]):
+				lalsnr = str(i[4]) + " +- " + str(i[3])
+			if "mc" == str(i[0]):
+				lalmchirp = str(i[4]) + " +- " + str(i[3])
 		os.remove("summary_statistics.dat")
-
     string += "\n%10s | %20s | %20s | %45s | %15s | %40s | %20s | %40s"%(graceid, far, lalstart, lalfinish, snr, lalsnr, mchirp, lalmchirp)
 #Puts all data together and adds it to the previous data
 
