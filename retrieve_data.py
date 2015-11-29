@@ -1,13 +1,3 @@
-'''
-arg1 = Lower bound of gpstime
-arg2 = Upper bound of gpstime
-arg3 = far threshold
-arg4 = specific pipeline that you are interested in
-arg5 = specific pipeline that you are interested in
-arg6 = username for ligo
-arg7 = password for ligo
-'''
-
 from ligo.gracedb.rest import GraceDb 
 
 from datetime import datetime
@@ -18,13 +8,19 @@ import os
 
 import pickle, json
 
+from optparse import OptionParser
+
 from sys import argv
-#imports arguments
 
 g = GraceDb()
 
 now = datetime.now()
 
+parser = OptionParser()
+
+parser.add_option("-d", help = "The arguments should be in this order: lower bound gps time, upper bound gps time, upper bound FAR threshold, the string gstlal, the string mbtaonline, your ligo username, your ligo password")
+parser.add_option("-e", help = "An example list of arguments would be: 1127451353.80912 1127529738.14937 1.0e-4 gstlal mbtaonline user.name password")
+(options, args) = parser.parse_args()
 all_events = [ l for l in g.events(' %s .. %s far < %s'%tuple(argv[1:4])) if (l['pipeline'].lower() in argv[4:]) ]
 #chooses events from GraceDb that are under a certain FAR threshold, in between two GPS times, and certain pipelines
 
